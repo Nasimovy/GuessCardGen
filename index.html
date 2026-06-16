@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guess Who? Card Maker</title>
+<meta name="description" content="Make printable Guess Who style character cards with your own names and photos. Customize card size, layout, and style, then print or export a PDF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Patrick+Hand&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<style id="dynamicPageSize"></style>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-stamp" aria-hidden="true">?</span>
+      <div class="brand-text">
+        <h1>Guess Who? Card Maker</h1>
+        <p>Build a printable sheet of character cards for your own deduction game</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="button" id="printBtn" class="btn btn-ghost">Print sheet</button>
+      <button type="button" id="pdfBtn" class="btn btn-primary">Export PDF</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+
+    <aside class="sidebar" aria-label="Card and layout settings">
+
+      <details class="panel" open>
+        <summary class="panel-tab">Roster</summary>
+        <div class="panel-body">
+
+          <label class="field-label" for="bulkNames">Add names in bulk</label>
+          <textarea id="bulkNames" rows="3" placeholder="One name per line&#10;Ava&#10;Theo&#10;Priya"></textarea>
+          <div class="btn-row">
+            <button type="button" id="bulkAddBtn" class="btn btn-small">Add names</button>
+            <button type="button" id="sampleBtn" class="btn btn-small btn-ghost">Fill sample names</button>
+          </div>
+
+          <ul id="cardList" class="card-list" aria-label="Characters"></ul>
+
+          <button type="button" id="addCardBtn" class="btn btn-small btn-block">+ Add blank card</button>
+          <button type="button" id="clearAllBtn" class="btn btn-text btn-block">Clear all cards</button>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary class="panel-tab">Layout</summary>
+        <div class="panel-body">
+
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="pageSize">Page size</label>
+              <select id="pageSize">
+                <option value="A4">A4</option>
+                <option value="Letter">US Letter</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="orientation">Orientation</label>
+              <select id="orientation">
+                <option value="portrait">Portrait</option>
+                <option value="landscape">Landscape</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-grid" id="customPageRow" hidden>
+            <div>
+              <label class="field-label" for="customPageW">Page width (mm)</label>
+              <input type="number" id="customPageW" min="50" max="2000" value="210">
+            </div>
+            <div>
+              <label class="field-label" for="customPageH">Page height (mm)</label>
+              <input type="number" id="customPageH" min="50" max="2000" value="297">
+            </div>
+          </div>
+
+          <fieldset class="mode-fieldset">
+            <legend class="field-label">Card sizing</legend>
+            <label class="radio-row">
+              <input type="radio" name="sizeMode" id="modeFit" value="fit" checked>
+              Fit a grid to the page
+            </label>
+            <label class="radio-row">
+              <input type="radio" name="sizeMode" id="modeCustom" value="custom">
+              Set an exact card size
+            </label>
+          </fieldset>
+
+          <div id="fitControls">
+            <label class="field-label" for="gridPreset">Cards per sheet</label>
+            <select id="gridPreset">
+              <option value="4x4">16 per sheet (4 × 4)</option>
+              <option value="4x6">24 per sheet (4 × 6)</option>
+              <option value="3x4">12 per sheet (3 × 4)</option>
+              <option value="3x3">9 per sheet (3 × 3)</option>
+              <option value="custom">Custom rows × columns</option>
+            </select>
+            <div class="field-grid" id="customGridRow" hidden>
+              <div>
+                <label class="field-label" for="rowsInput">Rows</label>
+                <input type="number" id="rowsInput" min="1" max="12" value="4">
+              </div>
+              <div>
+                <label class="field-label" for="colsInput">Columns</label>
+                <input type="number" id="colsInput" min="1" max="12" value="4">
+              </div>
+            </div>
+          </div>
+
+          <div id="customSizeControls" hidden>
+            <div class="field-grid">
+              <div>
+                <label class="field-label" for="cardWInput">Card width (mm)</label>
+                <input type="number" id="cardWInput" min="10" max="500" value="63">
+              </div>
+              <div>
+                <label class="field-label" for="cardHInput">Card height (mm)</label>
+                <input type="number" id="cardHInput" min="10" max="500" value="88">
+              </div>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="marginInput">Page margin (mm)</label>
+              <input type="number" id="marginInput" min="0" max="60" value="10">
+            </div>
+            <div>
+              <label class="field-label" for="gutterInput">Gap between cards (mm)</label>
+              <input type="number" id="gutterInput" min="0" max="30" value="4">
+            </div>
+          </div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="showCutLines" checked>
+            Show dashed cutting guides
+          </label>
+
+          <p class="layout-summary" id="layoutSummary" aria-live="polite"></p>
+        </div>
+      </details>
+
+      <details class="panel" open>
+        <summary class="panel-tab">Card style</summary>
+        <div class="panel-body">
+
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="bgColor">Card color</label>
+              <input type="color" id="bgColor" value="#fbf7ee">
+            </div>
+            <div>
+              <label class="field-label" for="textColor">Text color</label>
+              <input type="color" id="textColor" value="#232838">
+            </div>
+          </div>
+
+          <label class="field-label" for="fontSelect">Name font</label>
+          <select id="fontSelect">
+            <option value="inter">Clean (Inter)</option>
+            <option value="playfair">Elegant (Playfair Display)</option>
+            <option value="patrick">Playful (Patrick Hand)</option>
+            <option value="typewriter">Typewriter (Special Elite)</option>
+          </select>
+
+          <div class="field-grid">
+            <div>
+              <label class="field-label" for="borderWidth">Border width (px)</label>
+              <input type="range" id="borderWidth" min="0" max="8" value="2">
+            </div>
+            <div>
+              <label class="field-label" for="radiusInput">Corner radius (px)</label>
+              <input type="range" id="radiusInput" min="0" max="40" value="10">
+            </div>
+          </div>
+
+          <label class="field-label" for="borderColor">Border color</label>
+          <input type="color" id="borderColor" value="#232838">
+
+          <label class="checkbox-row">
+            <input type="checkbox" id="showSubtitle">
+            Add a second line of text (e.g. a category or clue)
+          </label>
+
+        </div>
+      </details>
+
+    </aside>
+
+    <main class="canvas-wrap">
+      <p class="canvas-status" id="canvasStatus" aria-live="polite"></p>
+      <div class="canvas" id="canvas"></div>
+    </main>
+
+  </div>
+</div>
+
+<input type="file" id="imageInput" accept="image/*" style="display:none">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
