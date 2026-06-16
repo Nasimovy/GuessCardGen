@@ -246,6 +246,36 @@
     );
   }
 
+  /* ===================== Auto-fit text ===================== */
+
+  // Shrinks (or grows, up to a sensible ceiling) an element's font-size so
+  // its text fills its own fixed-height box without overflowing. Longer
+  // text ends up smaller; short text renders as large as the box allows.
+  function fitTextToBox(el) {
+    if (!el) return;
+    var boxHeight = el.clientHeight;
+    if (boxHeight <= 0) return; // not laid out yet (e.g. hidden) - skip
+    var minSize = 7;
+    var size = Math.max(minSize, Math.floor(boxHeight * 0.82));
+    el.style.fontSize = size + 'px';
+    var guard = 0;
+    while (
+      size > minSize && guard < 100 &&
+      (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1)
+    ) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+      guard++;
+    }
+  }
+
+  function fitAllCardText() {
+    var nameEls = canvasEl.querySelectorAll('.card-name');
+    for (var i = 0; i < nameEls.length; i++) fitTextToBox(nameEls[i]);
+    var subEls = canvasEl.querySelectorAll('.card-subtitle');
+    for (var j = 0; j < subEls.length; j++) fitTextToBox(subEls[j]);
+  }
+
   function updateStatusText(layout) {
     var text;
     if (cards.length === 0) {
@@ -285,6 +315,7 @@
       html += '<div class="page">' + slice.map(cardMarkup).join('') + '</div>';
     }
     canvasEl.innerHTML = html;
+    fitAllCardText();
   }
 
   /* ===================== Rendering: sidebar roster ===================== */
@@ -374,15 +405,22 @@
     if (!card) return;
     card[field] = value;
     saveState();
+
+    var selector = field === 'name' ? '.card-name' : '.card-subtitle';
+    var canvasFieldEl = canvasEl.querySelector(selector + '[data-id="' + id + '"]');
+
     if (field === 'name') {
       if (source === 'canvas') {
         var sideInput = cardListEl.querySelector('input[data-id="' + id + '"]');
         if (sideInput && sideInput.value !== value) sideInput.value = value;
-      } else {
-        var canvasNameEl = canvasEl.querySelector('.card-name[data-id="' + id + '"]');
-        if (canvasNameEl && canvasNameEl.textContent !== value) canvasNameEl.textContent = value;
+      } else if (canvasFieldEl && canvasFieldEl.textContent !== value) {
+        canvasFieldEl.textContent = value;
       }
     }
+
+    // Re-measure and re-fit the font size for whichever element changed,
+    // so the text grows or shrinks live as its length changes.
+    if (canvasFieldEl) fitTextToBox(canvasFieldEl);
   }
 
   function setCardImage(id, dataURL) {
@@ -589,6 +627,12 @@
     updateConditionalVisibility();
     wireEvents();
     renderAll();
+
+    // Custom web fonts swap in after loading and can change text metrics;
+    // re-fit once they're ready so sizes settle on the real font.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () { fitAllCardText(); }).catch(function () {});
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
