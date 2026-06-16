@@ -53,7 +53,9 @@
     borderWidth: 2,
     borderColor: '#232838',
     radius: 10,
-    showSubtitle: false
+    showSubtitle: false,
+    nameHeight: 18,
+    subtitleHeight: 10
   };
 
   /* ===================== State ===================== */
@@ -100,6 +102,9 @@
   var radiusInputEl = $('radiusInput');
   var borderColorEl = $('borderColor');
   var showSubtitleEl = $('showSubtitle');
+  var nameHeightInputEl = $('nameHeightInput');
+  var subtitleHeightWrapEl = $('subtitleHeightWrap');
+  var subtitleHeightInputEl = $('subtitleHeightInput');
 
   var canvasEl = $('canvas');
   var canvasStatusEl = $('canvasStatus');
@@ -224,6 +229,15 @@
     root.setProperty('--card-border-w', s.borderWidth + 'px');
     root.setProperty('--card-border-color', s.borderColor);
     root.setProperty('--card-radius', s.radius + 'px');
+
+    // Text box heights are a fixed, user-set mm value (so every card's
+    // boxes are identical), clamped so there's always some room left for
+    // the photo even on very short custom card heights.
+    var maxBandTotal = Math.max(8, layout.cardH - 10);
+    var nameH = clamp(s.nameHeight, 5, maxBandTotal);
+    var subH = s.showSubtitle ? clamp(s.subtitleHeight, 4, Math.max(4, maxBandTotal - nameH)) : 0;
+    root.setProperty('--name-band-h', nameH + 'mm');
+    root.setProperty('--subtitle-band-h', subH + 'mm');
   }
 
   /* ===================== Rendering: canvas ===================== */
@@ -457,6 +471,8 @@
     settings.borderColor = borderColorEl.value;
     settings.radius = parseFloat(radiusInputEl.value) || 0;
     settings.showSubtitle = showSubtitleEl.checked;
+    settings.nameHeight = parseFloat(nameHeightInputEl.value) || 18;
+    settings.subtitleHeight = parseFloat(subtitleHeightInputEl.value) || 10;
   }
 
   function applySettingsToForm() {
@@ -480,6 +496,8 @@
     radiusInputEl.value = settings.radius;
     borderColorEl.value = settings.borderColor;
     showSubtitleEl.checked = settings.showSubtitle;
+    nameHeightInputEl.value = settings.nameHeight;
+    subtitleHeightInputEl.value = settings.subtitleHeight;
   }
 
   function updateConditionalVisibility() {
@@ -487,6 +505,7 @@
     fitControlsEl.hidden = settings.sizeMode !== 'fit';
     customSizeControlsEl.hidden = settings.sizeMode !== 'custom';
     customGridRowEl.hidden = !(settings.sizeMode === 'fit' && settings.gridPreset === 'custom');
+    subtitleHeightWrapEl.hidden = !settings.showSubtitle;
   }
 
   function onSettingsChanged() {
@@ -602,7 +621,8 @@
       pageSizeEl, customPageWEl, customPageHEl, orientationEl, modeFitEl, modeCustomEl,
       gridPresetEl, rowsInputEl, colsInputEl, cardWInputEl, cardHInputEl,
       marginInputEl, gutterInputEl, showCutLinesEl, bgColorEl, textColorEl,
-      fontSelectEl, borderWidthEl, radiusInputEl, borderColorEl, showSubtitleEl
+      fontSelectEl, borderWidthEl, radiusInputEl, borderColorEl, showSubtitleEl,
+      nameHeightInputEl, subtitleHeightInputEl
     ];
     settingsInputs.forEach(function (el) {
       el.addEventListener('input', onSettingsChanged);
